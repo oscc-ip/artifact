@@ -1,0 +1,108 @@
+name: Build iEDA
+
+on:
+  push:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    outputs:
+      release-exists: ${{ steps.release.outputs.release-exists }}
+      sha: ${{ steps.sha.outputs.sha }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: OSCC-Project/iEDA
+
+      - name: Check commit sha
+        id: sha
+        run: |
+          echo "sha=$(git rev-parse HEAD | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release exists
+        id: release
+        uses: insightsengineering/release-existence-action@v1.0.0
+        with:
+          release-tag: ${{ steps.sha.outputs.sha }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.release-exists == 'false'
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: OSCC-Project/iEDA
+          submodules: true
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y tcl-dev libgflags-dev libgoogle-glog-dev libboost-all-dev libgtest-dev flex \
+            libeigen3-dev libunwind-dev libmetis-dev libgmp-dev bison \
+            libhwloc-dev libcairo2-dev ninja-build
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 10
+          platform: x64
+
+      - name: Build iEDA
+        env:
+          CXXFLAGS: -Wno-error -fpermissive
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja -DCMD_BUILD=ON -DSANITIZER=OFF -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:FILEPATH=$(pwd)/bin -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --target all -- -j $(nproc)
+          cd ..
+
+      - name: Test iEDA
+        run: |
+          build/bin/iEDA -script scripts/hello.tcl
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: |
+            build/bin/*
+
+      - name: Publish release
+        id: publish
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          name: iEDA-${{ needs.check.outputs.sha }}
+          tag_name: ${{ needs.check.outputs.sha }}
+          make_latest: true
+          files: |
+            build/bin/*
+          body: |
+            iEDA release
+
+      - name: Attest Release Files
+        id: attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            build/bin/*
