@@ -52,7 +52,7 @@ jobs:
       - name: Set up dependencies
         uses: daaku/gh-action-apt-install@v4
         with:
-          packages: flex bison tcl-dev tcl-tclreadline libeigen3-dev ninja-build
+          packages: flex libfl-dev bison tcl-dev tcl-tclreadline libeigen3-dev ninja-build
 
       - name: Set up cudd-3.0.0
         run: |
@@ -65,7 +65,8 @@ jobs:
           mkdir build
           cd build
           cmake .. -G Ninja -DCUDD_DIR=$(pwd)/../cudd -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_BUILD_TYPE=Release
-          cmake --install . --target all -- -j $(nproc)
+          cmake --build . --target all -- -j $(nproc)
+          cmake --install .
           tar -zcvf build.tar.gz -Cinstall .
           cd ..
 
@@ -85,6 +86,7 @@ jobs:
           make_latest: true
           files: |
             build/build.tar.gz
+            build/install/bin/*
           body: |
             OpenSTA release
 
@@ -94,3 +96,4 @@ jobs:
         with:
           subject-path: |
             build/build.tar.gz
+            build/install/bin/*
