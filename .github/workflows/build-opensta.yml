@@ -50,8 +50,9 @@ jobs:
           submodules: true
 
       - name: Set up dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y flex libeigen3-dev ninja-build
+        uses: daaku/gh-action-apt-install@v4
+        with:
+          packages: flex bison tcl-dev tcl-tclreadline libeigen3-dev ninja-build
 
       - name: Set up cudd-3.0.0
         run: |
@@ -63,7 +64,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -G Ninja -DCUDD_DIR=$(pwd)/cudd -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_BUILD_TYPE=Release
+          cmake .. -G Ninja -DCUDD_DIR=$(pwd)/../cudd -DCMAKE_INSTALL_PREFIX=$(pwd)/install -DCMAKE_BUILD_TYPE=Release
           cmake --install . --target all -- -j $(nproc)
           tar -zcvf build.tar.gz -Cinstall .
           cd ..

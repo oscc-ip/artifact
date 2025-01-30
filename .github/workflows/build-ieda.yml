@@ -61,8 +61,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Set up dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y tcl-dev libgflags-dev libgoogle-glog-dev libboost-all-dev libgtest-dev flex \
+        uses: daaku/gh-action-apt-install@v4
+        with:
+          packages:
+            tcl-dev libgflags-dev libgoogle-glog-dev libboost-all-dev libgtest-dev flex \
             libeigen3-dev libunwind-dev libmetis-dev libgmp-dev bison \
             libhwloc-dev libcairo2-dev ninja-build
 
