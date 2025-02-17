@@ -64,7 +64,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y tcl-dev libgflags-dev libgoogle-glog-dev libboost-all-dev libgtest-dev flex \
           libeigen3-dev libunwind-dev libmetis-dev libgmp-dev bison \
-          libhwloc-dev libcairo2-dev ninja-build
+          libhwloc-dev libcairo2-dev ninja-build libtbb-dev
 
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
