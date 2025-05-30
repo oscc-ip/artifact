@@ -74,11 +74,11 @@ jobs:
 
       - name: Build iEDA
         env:
-          CXXFLAGS: -Wno-error -fpermissive
+          CXXFLAGS: -Wno-error -fpermissive -fPIC
         run: |
           mkdir build
           cd build
-          cmake .. -G Ninja -DCMD_BUILD=ON -DSANITIZER=OFF -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:FILEPATH=$(pwd)/bin -DCMAKE_BUILD_TYPE=Release
+          cmake .. -G Ninja -DCMD_BUILD=ON -DSANITIZER=OFF -DBUILD_STATIC_LIB=OFF -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:FILEPATH=$(pwd)/bin -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target all -- -j $(nproc)
           cd ..
 
