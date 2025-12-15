@@ -87,7 +87,7 @@ jobs:
           build/bin/iEDA -script scripts/hello.tcl
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           path: |
             build/bin/*
